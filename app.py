@@ -17,11 +17,151 @@ external_stylesheets = [
         "rel": "stylesheet",
     },
 ]
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
+external_scripts = [
+    {'src': 'assets/custom.js'},
+ 
+]
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets,external_scripts=external_scripts,)
 server = app.server
 
 app.title = "Avocado Analytics: Understand Your Avocados!"
+context_module=html.Div(children=[
+                        html.H1(children="Natural Language AI",
+                                style={'font-size':'100'}),
+                        html.H4(children="Derive insights from unstructured text using Avocado machine learning.",
+                                style={'font-weight':'400'}),
+                        html.Section(
+                            id="introduction",
+                            children=[
+                                html.H2(children="Insightful text analysis",
+                                        style={'font-weight':'400'}),
+                                dbc.Row([
+                                dbc.Col(html.P(children="Natural Language uses machine learning to reveal the structure and meaning of text. You can extract \
+                                information about people, places, and events, and better understand social media sentiment and customer conversations. \
+                                Natural Language AI enables you to analyze text and also integrate it with your document storage on Cloud Storage.",
+                                style={'line-height':'28px','font-weight':'400','color':'#5f6368'}),),
+                                dbc.Col(html.Img(src="assets/Google_photo.png",
+                                                 style={"width":'500px','height':'350px','padding-right':'100px','padding-bottom':'100px'}),),
+                                ],
+                                style={'display':'flex',"justify-content": "space-evenly"}
+                                )
+                            ]
+                        ),
+                        html.Section(
+                            id="request-response",
+                            children=[
+                                html.H2(children="Request & Response"),
+                                html.P(children="..."),
+                            ]
+                        ),
+                        html.Section(
+                            id="authentication",
+                            children=[
+                                html.H2(children="Authentication"),
+                                html.P(children="..."),
+                            ]
+                        ),
+                        html.Section(
+                            id="endpoints",
+                            children=[
+                                html.H2(children="Authentication"),
+                                html.Section(
+                                id="endpoints--root",
+                                children=[
+                                    html.H2(children="Root"),
+                                    html.P(children="..."),
+                                    ],
+                                ),
+                                html.Section(
+                                id="endpoints--city-detail",
+                                children=[
+                                    html.H2(children="City Detail"),
+                                    html.P(children="..."),
+                                
+                                ],
+                                ),
+                            ]
+                        ),
+                        html.Section(
+                            id="links",
+                            children=[
+                                html.H2(children="Links"),
+                                html.P(children="..."),
+                            ]
+                        ),
+                        html.Section(
+                            id="expanders",
+                            children=[
+                                html.H2(children="Expanders"),
+                                html.P(children="..."),
+                            ]
+                        ),
+                    ],
+                    ),
 
+scrolling_bar=html.Div([
+                html.Listing(
+                            children="NATURAL LANGUAGE API",
+                            style={"padding-left":'80px',"padding-right":'100px'}
+                    ),
+                html.Nav(
+                    className="section-nav",
+                    children=[
+                        
+                        html.Ol(
+                            children=[
+                                
+                                html.Listing(
+                                    html.A(href="#introduction",
+                                        children="Introduction")
+                                ),
+                                html.Listing(
+                                    html.A(href="#request-response",
+                                        children="Request")
+                                ),
+                                html.Listing(
+                                    html.A(href="#authentication",
+                                        children="Authentication")
+                                ),
+                                html.Listing(
+                                    children=[
+                                    html.A(href="#endpoints",
+                                        children="Endpoints"),
+                                    html.Ul(
+                                        children=[
+                                        html.Listing(
+                                                html.A(href="#endpoints--city-detail",
+                                                children="City Detail",
+                                                className="")
+                                                ),
+                                        ]
+                                    ),
+                                    ]
+                                ),
+                            html.Listing(
+                                    html.A(href="#links",
+                                    children="Links",
+                                    className="")
+                                    ),
+                                html.Listing(
+                                    html.A(href="#expanders",
+                                    children="Expanders",
+                                    className="")
+                                    ),
+                            ],
+                        ),
+                    ],
+                    style={"padding-left":'80px',"padding-right":'100px','position':'sticky'})
+            ])
+horizontal_display=html.Div(
+    dbc.Row([
+        dbc.Col(scrolling_bar,width=5),
+        dbc.Col(context_module)
+       ],
+        className="horizontal"
+    )
+)
 app.layout = html.Div(
     children=[
         html.Div(
@@ -90,6 +230,7 @@ app.layout = html.Div(
             ],
             className="menu",
         ),
+        
         html.Div(
             children=[
                 html.Div(
@@ -107,6 +248,9 @@ app.layout = html.Div(
             ],
             className="wrapper",
         ),
+        html.Div(
+            horizontal_display,
+        )
     ]
 )
 
