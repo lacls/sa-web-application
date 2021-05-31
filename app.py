@@ -28,7 +28,7 @@ server = app.server
 app.title = "Avocado Analytics: Understand Your Avocados!"
 context_module=html.Div(children=[
                         html.H1(children="Natural Language AI",
-                                style={'font-size':'100'}),
+                                style={'font-size':'100',}),
                         html.H4(children="Derive insights from unstructured text using Avocado machine learning.",
                                 style={'font-weight':'400'}),
                         html.Section(
@@ -42,7 +42,7 @@ context_module=html.Div(children=[
                                 Natural Language AI enables you to analyze text and also integrate it with your document storage on Cloud Storage.",
                                 style={'line-height':'28px','font-weight':'400','color':'#5f6368'}),),
                                 dbc.Col(html.Img(src="assets/Google_photo.png",
-                                                 style={"width":'500px','height':'350px','padding-right':'100px','padding-bottom':'100px'}),),
+                                                 style={"width":'500px','height':'380px','padding-right':'100px','padding-bottom':'100px'}),),
                                 ],
                                 style={'display':'flex',"justify-content": "space-evenly"}
                                 )
@@ -100,15 +100,13 @@ context_module=html.Div(children=[
                     ],
                     ),
 
-scrolling_bar=html.Div([
-                html.Listing(
-                            children="NATURAL LANGUAGE API",
-                            style={"padding-left":'80px',"padding-right":'100px'}
-                    ),
-                html.Nav(
+scrolling_bar= html.Nav(
                     className="section-nav",
                     children=[
-                        
+                        html.Listing(
+                            children="NATURAL LANGUAGE API",
+                            style={'font-family':"'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"}
+                        ),
                         html.Ol(
                             children=[
                                 
@@ -152,11 +150,11 @@ scrolling_bar=html.Div([
                             ],
                         ),
                     ],
-                    style={"padding-left":'80px',"padding-right":'100px','position':'sticky'})
-            ])
+                    style={"padding-left":'80px',"padding-right":'100px','position':'sticky','padding-top':'200px'})
+                
 horizontal_display=html.Div(
     dbc.Row([
-        dbc.Col(scrolling_bar,width=5),
+        dbc.Col(scrolling_bar),
         dbc.Col(context_module)
        ],
         className="horizontal"

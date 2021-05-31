@@ -82,9 +82,21 @@ html {
 
 /* 2. Make nav sticky */
 nav {
-	position: sticky;
-	top: 2rem;
-	align-self: start;
+    overflow: hidden;
+    /* background-color: #333; */
+    position: fixed; /* Set the navbar to fixed position */
+    top: 0; /* Position the navbar at the top of the page */
+    width: 100%; /* Full width */
+    
+}
+.nav a{
+    float: left;
+    display: block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 80px 150Spx; 
+    text-decoration: none;
+    font-family:"sans-serif";
 }
 
 /* 3. ScrollSpy active styles (see JS tab for activation) */
@@ -105,6 +117,9 @@ nav {
 	padding: .125rem 0;
 	color: #ccc;
 	transition: all 50ms ease-in-out; /* 💡 This small transition makes setting of the active state smooth */
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size:15px
+
 }
 
 .section-nav a:hover,
