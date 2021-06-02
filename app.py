@@ -1,10 +1,13 @@
 import dash
+from dash_bootstrap_components._components.Col import Col
+from dash_bootstrap_components._components.Row import Row
 import dash_core_components as dcc
 import dash_html_components as html
 import pandas as pd
 import numpy as np
 from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
+import time
 # source venv/bin/activate
 data = pd.read_csv("avocado.csv")
 data["Date"] = pd.to_datetime(data["Date"], format="%Y-%m-%d")
@@ -12,10 +15,12 @@ data.sort_values("Date", inplace=True)
 
 external_stylesheets = [
     {
-        "href": "https://fonts.googleapis.com/css2?"
-        "family=Lato:wght@400;700&display=swap",
+        "href": "//db.onlinewebfonts.com/c/7e0f75fa1eb5ee523ae2961d4e7a11a6?family=Noway"
+        "family=text/css",
         "rel": "stylesheet",
     },
+    
+    dbc.themes.BOOTSTRAP
 ]
 
 external_scripts = [
@@ -27,13 +32,16 @@ server = app.server
 
 app.title = "Avocado Analytics: Understand Your Avocados!"
 context_module=html.Div(children=[
+                        #Header
                         html.H1(children="Natural Language AI",
                                 style={'font-size':'100',}),
                         
-                        html.H4(children="Derive insights from unstructured text using Avocado machine learning.",
-                                style={'font-weight':'400'}),
-                        html.Div( dbc.Button("Try it for free", color="primary",disabled=True, className="mr-1",href="#nlp_demo",),
-                                 style={"padding-top":"20px","padding-bottom":"20px"}),
+                        html.H4(children="Derive insights from unstructured text using LTRACK2.0",
+                                style={'font-weight':'200','font-size':'65'}),
+                        html.Div( dbc.Button("Try it for free", color="primary",disabled=True, className="custom_button",href="#nlp_demo",),
+                                 style={"padding-top":"20px","padding-bottom":"20px"},
+                                 className="wrap"),
+                        ##Introduction
                         html.Section(
                             id="introduction",
                             children=[
@@ -54,9 +62,11 @@ context_module=html.Div(children=[
                             ],
                             style={"padding-top":"50px"}
                         ),
+                        ##DELIDER
                         html.Div(
                          style={"width":"60px","height":"3px","display":"block","background":"#d183a5"}
                         ),
+                        ##Overview
                         html.Section(
                             id="request-response",
                             children=[
@@ -83,57 +93,83 @@ context_module=html.Div(children=[
                                         ],),
                                         ],
                                     className="horizontal")
-                                ]
+                                ],
+                                style={"padding-top":"30px"}
                         ),
+
+                        ##Demo
                         html.Section(
                             id="nlp_demo",
                             children=[
                                 html.H2(children="Natural Language API demo",
                                         style={"text-align":"center","font-size":"40px"}),
                                 dbc.InputGroup(
-                                    [dbc.InputGroupAddon("Try the API", addon_type="prepend", style={"text-align":"center","font-weight":"50px","padding-top":"50px","padding-bottom":"30px"}), 
-                                    dbc.Input(id="input",placeholder="Enter text to be analyzed...",className="mb-3",type="text")],
-                                    size="lg",),
+                                    [dbc.InputGroupAddon("Try the API", addon_type="prepend", style={"text-align":"center","font-weight":"50px"}), 
+                                    dbc.Input(id="input",placeholder="Enter text to be analyzed...",type="text")],
+                                    size="lg",
+                                    style={"padding-top":"50px"}),
                                 html.Br(),
-                                html.Div( dbc.Button("Analyse", color="primary",disabled=True, className="mr-1",href="#nlp_demo",),
+                                html.Div(dbc.Button("Analyse", id="summit_button",color="primary",outline=True, className="simple_button",n_clicks=0),
                                  style={"padding-top":"20px","padding-bottom":"20px","text-align":"center"}),  
-                            ]
-                        ),
-                        html.Section(
-                            id="endpoints",
-                            children=[
-                                html.H2(children="Authentication"),
-                                html.Section(
-                                id="endpoints--root",
-                                children=[
-                                    html.H2(children="Root"),
-                                    html.P(children="..."),
-                                    ],
+                                html.Div(id='container-button-basic',
+                                        children='Enter a value and press submit'),
+                                html.Div(
+                                            dbc.Spinner(color="primary", type="grow",children=[html.Div(id="loading-output")]),
                                 ),
-                                html.Section(
-                                id="endpoints--city-detail",
-                                children=[
-                                    html.H2(children="City Detail"),
-                                    html.P(children="..."),
-                                
+                                html.Div([
+                                    dbc.Button(
+                                        "*Support Language",
+                                        id="collapse-button",
+                                        outline=True, 
+                                        color="primary", 
+                                        className="mr-1",
+                                       
+                                    ),
+                                    dbc.Collapse(
+                                        dbc.Card(dbc.CardBody("This content is hidden in the collapse")),
+                                        id="collapse",
+                                    ),
                                 ],
-                                ),
+                                    style={"padding-top":"30px"})
                             ]
                         ),
-                        html.Section(
-                            id="links",
-                            children=[
-                                html.H2(children="Links"),
-                                html.P(children="..."),
-                            ]
-                        ),
-                        html.Section(
-                            id="expanders",
-                            children=[
-                                html.H2(children="Expanders"),
-                                html.P(children="..."),
-                            ]
-                        ),
+
+
+                        # html.Section(
+                        #     id="endpoints",
+                        #     children=[
+                        #         html.H2(children="Authentication"),
+                        #         html.Section(
+                        #         id="endpoints--root",
+                        #         children=[
+                        #             html.H2(children="Root"),
+                        #             html.P(children="..."),
+                        #             ],
+                        #         ),
+                        #         html.Section(
+                        #         id="endpoints--city-detail",
+                        #         children=[
+                        #             html.H2(children="City Detail"),
+                        #             html.P(children="..."),
+                                
+                        #         ],
+                        #         ),
+                        #     ]
+                        # ),
+                        # html.Section(
+                        #     id="links",
+                        #     children=[
+                        #         html.H2(children="Links"),
+                        #         html.P(children="..."),
+                        #     ]
+                        # ),
+                        # html.Section(
+                        #     id="expanders",
+                        #     children=[
+                        #         html.H2(children="Expanders"),
+                        #         html.P(children="..."),
+                        #     ]
+                        # ),
                     ],
                     ),
 
@@ -187,165 +223,194 @@ scrolling_bar= html.Nav(
                             ],
                         ),
                     ],
-                    style={"padding-left":'80px',"padding-right":'100px','position':'sticky','padding-top':'200px'})
+                    style={"padding-left":'80px','position':'sticky'})
                 
 horizontal_display=html.Div(
     dbc.Row([
-        dbc.Col(scrolling_bar),
+        dbc.Col(scrolling_bar,width=3),
         dbc.Col(context_module)
        ],
         className="horizontal"
     )
 )
+
 app.layout = html.Div(
     children=[
-        html.Div(
-            children=[
-                html.H1(
-                    children="Avocado Analytics", className="header-title"
-                ),
-                html.P(
-                    children="Analyze the behavior of avocado prices"
-                    " and the number of avocados sold in the US"
-                    " between 2015 and 2018",
-                    className="header-description",
-                ),
-            ],
-            className="header",
-        ),
-        html.Div(
-            children=[
-                html.Div(
-                    children=[
-                        html.Div(children="Region", className="menu-title"),
-                        dcc.Dropdown(
-                            id="region-filter",
-                            options=[
-                                {"label": region, "value": region}
-                                for region in np.sort(data.region.unique())
-                            ],
-                            value="Albany",
-                            clearable=False,
-                            className="dropdown",
-                        ),
-                    ]
-                ),
-                html.Div(
-                    children=[
-                        html.Div(children="Type", className="menu-title"),
-                        dcc.Dropdown(
-                            id="type-filter",
-                            options=[
-                                {"label": avocado_type, "value": avocado_type}
-                                for avocado_type in data.type.unique()
-                            ],
-                            value="organic",
-                            clearable=False,
-                            searchable=False,
-                            className="dropdown",
-                        ),
-                    ],
-                ),
-                html.Div(
-                    children=[
-                        html.Div(
-                            children="Date Range",
-                            className="menu-title"
-                            ),
-                        dcc.DatePickerRange(
-                            id="date-range",
-                            min_date_allowed=data.Date.min().date(),
-                            max_date_allowed=data.Date.max().date(),
-                            start_date=data.Date.min().date(),
-                            end_date=data.Date.max().date(),
-                        ),
-                    ]
-                ),
-            ],
-            className="menu",
-        ),
+        html.Div([
+            dbc.Row([
+                dbc.Col(html.H2(children="LTrack2.0",style={"padding-left":"95px"})),
+                dbc.Col(dbc.Nav(
+                    [
+                        dbc.NavLink("   Contact    ", disabled=True, href="#",style={"font-family":"text/css"}),
+                        dbc.NavLink("   About  ",disabled=True, href="#"),
+                        dbc.NavLink("   Terms  ",disabled=True,href="#"),
+                    ]),style={"justify-content": "space-evenly","padding-left":"100px"})
+                ],),],
+            className="header",),
+
+        # html.Div(
+        #     children=[
+        #         html.Div(
+        #             children=[
+        #                 html.Div(children="Region", className="menu-title"),
+        #                 dcc.Dropdown(
+        #                     id="region-filter",
+        #                     options=[
+        #                         {"label": region, "value": region}
+        #                         for region in np.sort(data.region.unique())
+        #                     ],
+        #                     value="Albany",
+        #                     clearable=False,
+        #                     className="dropdown",
+        #                 ),
+        #             ]
+        #         ),
+        #         html.Div(
+        #             children=[
+        #                 html.Div(children="Type", className="menu-title"),
+        #                 dcc.Dropdown(
+        #                     id="type-filter",
+        #                     options=[
+        #                         {"label": avocado_type, "value": avocado_type}
+        #                         for avocado_type in data.type.unique()
+        #                     ],
+        #                     value="organic",
+        #                     clearable=False,
+        #                     searchable=False,
+        #                     className="dropdown",
+        #                 ),
+        #             ],
+        #         ),
+        #         html.Div(
+        #             children=[
+        #                 html.Div(
+        #                     children="Date Range",
+        #                     className="menu-title"
+        #                     ),
+        #                 dcc.DatePickerRange(
+        #                     id="date-range",
+        #                     min_date_allowed=data.Date.min().date(),
+        #                     max_date_allowed=data.Date.max().date(),
+        #                     start_date=data.Date.min().date(),
+        #                     end_date=data.Date.max().date(),
+        #                 ),
+        #             ]
+        #         ),
+        #     ],
+        #     className="menu",
+        # ),
         
-        html.Div(
-            children=[
-                html.Div(
-                    children=dcc.Graph(
-                        id="price-chart", config={"displayModeBar": False},
-                    ),
-                    className="card",
-                ),
-                html.Div(
-                    children=dcc.Graph(
-                        id="volume-chart", config={"displayModeBar": False},
-                    ),
-                    className="card",
-                ),
-            ],
-            className="wrapper",
-        ),
+        # html.Div(
+        #     children=[
+        #         html.Div(
+        #             children=dcc.Graph(
+        #                 id="price-chart", config={"displayModeBar": False},
+        #             ),
+        #             className="card",
+        #         ),
+        #         html.Div(
+        #             children=dcc.Graph(
+        #                 id="volume-chart", config={"displayModeBar": False},
+        #             ),
+        #             className="card",
+        #         ),
+        #     ],
+        #     className="wrapper",
+        # ),
         html.Div(
             horizontal_display,
         )
     ]
 )
 
+# ##outside_Variable
+# previous_click=0
+
+# @app.callback(
+#     [Output("price-chart", "figure"), Output("volume-chart", "figure")],
+#     [
+#         Input("region-filter", "value"),
+#         Input("type-filter", "value"),
+#         Input("date-range", "start_date"),
+#         Input("date-range", "end_date"),
+#     ],
+# )
+
+# def update_charts(region, avocado_type, start_date, end_date):
+#     mask = (
+#         (data.region == region)
+#         & (data.type == avocado_type)
+#         & (data.Date >= start_date)
+#         & (data.Date <= end_date)
+#     )
+#     filtered_data = data.loc[mask, :]
+#     price_chart_figure = {
+#         "data": [
+#             {
+#                 "x": filtered_data["Date"],
+#                 "y": filtered_data["AveragePrice"],
+#                 "type": "lines",
+#                 "hovertemplate": "$%{y:.2f}<extra></extra>",
+#             },
+#         ],
+#         "layout": {
+#             "title": {
+#                 "text": "Average Price of Avocados",
+#                 "x": 0.05,
+#                 "xanchor": "left",
+#             },
+#             "xaxis": {"fixedrange": True},
+#             "yaxis": {"tickprefix": "$", "fixedrange": True},
+#             "colorway": ["#17B897"],
+#         },
+#     }
+
+#     volume_chart_figure = {
+#         "data": [
+#             {
+#                 "x": filtered_data["Date"],
+#                 "y": filtered_data["Total Volume"],
+#                 "type": "lines",
+#             },
+#         ],
+#         "layout": {
+#             "title": {"text": "Avocados Sold", "x": 0.05, "xanchor": "left"},
+#             "xaxis": {"fixedrange": True},
+#             "yaxis": {"fixedrange": True},
+#             "colorway": ["#E12D39"],
+#         },
+#     }
+#     return price_chart_figure, volume_chart_figure
 
 @app.callback(
-    [Output("price-chart", "figure"), Output("volume-chart", "figure")],
-    [
-        Input("region-filter", "value"),
-        Input("type-filter", "value"),
-        Input("date-range", "start_date"),
-        Input("date-range", "end_date"),
-    ],
+    Output("loading-output", "children"), [Input("summit_button", "n_clicks")])
+def load_output(n):
+    if n:
+        time.sleep(1)
+        return f"Output loaded {n} times"
+    return "Output not reloaded yet"
+    
+@app.callback(
+    dash.dependencies.Output('container-button-basic', 'children'),
+    [dash.dependencies.Input('input', 'value'),
+     dash.dependencies.Input('summit_button', 'n_clicks')])
+
+def update_output(value,click_Value):
+
+    if click_Value:
+        # print(previous_click,click_Value)
+        return 'The input value was "{}" and the button has been clicked {} times'.format(
+            value,
+            click_Value
+        )
+@app.callback(
+    Output("collapse", "is_open"),
+    [Input("collapse-button", "n_clicks")],
+    [dash.dependencies.State("collapse", "is_open")],
 )
-# @app.callback(Output("output", "children"), [Input("input", "value")])
-
-def update_charts(region, avocado_type, start_date, end_date):
-    mask = (
-        (data.region == region)
-        & (data.type == avocado_type)
-        & (data.Date >= start_date)
-        & (data.Date <= end_date)
-    )
-    filtered_data = data.loc[mask, :]
-    price_chart_figure = {
-        "data": [
-            {
-                "x": filtered_data["Date"],
-                "y": filtered_data["AveragePrice"],
-                "type": "lines",
-                "hovertemplate": "$%{y:.2f}<extra></extra>",
-            },
-        ],
-        "layout": {
-            "title": {
-                "text": "Average Price of Avocados",
-                "x": 0.05,
-                "xanchor": "left",
-            },
-            "xaxis": {"fixedrange": True},
-            "yaxis": {"tickprefix": "$", "fixedrange": True},
-            "colorway": ["#17B897"],
-        },
-    }
-
-    volume_chart_figure = {
-        "data": [
-            {
-                "x": filtered_data["Date"],
-                "y": filtered_data["Total Volume"],
-                "type": "lines",
-            },
-        ],
-        "layout": {
-            "title": {"text": "Avocados Sold", "x": 0.05, "xanchor": "left"},
-            "xaxis": {"fixedrange": True},
-            "yaxis": {"fixedrange": True},
-            "colorway": ["#E12D39"],
-        },
-    }
-    return price_chart_figure, volume_chart_figure
-
-
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 if __name__ == "__main__":
     app.run_server(debug=True)
