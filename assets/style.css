@@ -30,7 +30,31 @@ body {
     text-align: center;
     max-width: 384px;
 }
+.content_animation_frame_bg{
+    width:100
+}
+.mr-1{
+    background: linear-gradient(to right,#df8ef3 0%,#df79f9 100%);
+    border-radius:15px;
+    box-shadow:0 0 15px #be4fff94;
+    border:none;
+    padding: 8px 22px;
+    font-weight: 700;
+    color: #fff;
+    outline:none;
+    margin-top: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .12s linear;
+}
+.mb-3{
+  width: 1000px;
+  height:80px;
+  padding-left:30px;
+  align-items:start;
 
+
+}
 .wrapper {
     margin-right: auto;
     margin-left: auto;
@@ -164,7 +188,7 @@ main {
 
 /** enlarge the sections for this demo, so that we have a long scrollable page **/
 section {
-	padding-bottom: 5rem;
+	padding-bottom: 2rem;
 }
 .horizontal {
     /* height: 112px;

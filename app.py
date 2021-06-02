@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
-
+# source venv/bin/activate
 data = pd.read_csv("avocado.csv")
 data["Date"] = pd.to_datetime(data["Date"], format="%Y-%m-%d")
 data.sort_values("Date", inplace=True)
@@ -29,8 +29,11 @@ app.title = "Avocado Analytics: Understand Your Avocados!"
 context_module=html.Div(children=[
                         html.H1(children="Natural Language AI",
                                 style={'font-size':'100',}),
+                        
                         html.H4(children="Derive insights from unstructured text using Avocado machine learning.",
                                 style={'font-weight':'400'}),
+                        html.Div( dbc.Button("Try it for free", color="primary",disabled=True, className="mr-1",href="#nlp_demo",),
+                                 style={"padding-top":"20px","padding-bottom":"20px"}),
                         html.Section(
                             id="introduction",
                             children=[
@@ -41,25 +44,59 @@ context_module=html.Div(children=[
                                 information about people, places, and events, and better understand social media sentiment and customer conversations. \
                                 Natural Language AI enables you to analyze text and also integrate it with your document storage on Cloud Storage.",
                                 style={'line-height':'28px','font-weight':'400','color':'#5f6368'}),),
-                                dbc.Col(html.Img(src="assets/Google_photo.png",
-                                                 style={"width":'500px','height':'380px','padding-right':'100px','padding-bottom':'100px'}),),
+                                dbc.Col(
+                                    html.Img(src="assets/Pic1.png",
+                                                 style={"width":'450px','height':'350px','padding-right':'100px','padding-bottom':'100px'}),
+                                                 style={"width":'500px','height':'400px'}),
                                 ],
                                 style={'display':'flex',"justify-content": "space-evenly"}
                                 )
-                            ]
+                            ],
+                            style={"padding-top":"50px"}
+                        ),
+                        html.Div(
+                         style={"width":"60px","height":"3px","display":"block","background":"#d183a5"}
                         ),
                         html.Section(
                             id="request-response",
                             children=[
-                                html.H2(children="Request & Response"),
-                                html.P(children="..."),
-                            ]
+                                dbc.Row([
+                                        dbc.Col([
+                                        html.H3(children="AutoML"),
+                                        
+                                        html.P(children="Train your own high-quality machine learning custom models to classify, extract, and detect sentiment with minimum effort and machine learning expertise using Vertex AI for natural language, powered by AutoML. You can use the AutoML UI to upload your training data and test your custom model without a single line of code.",
+                                        style={'line-height':'28px','font-weight':'400','color':'#5f6368'}),
+                                        ],),
+                        
+                                        dbc.Col([
+                                        html.H3(children="Natural Language API"),
+                                        
+                                        html.P(children="The powerful pre-trained models of the Natural Language API empowers developers to easily apply natural language understanding (NLU) to their applications with features including sentiment analysis, entity analysis, entity sentiment analysis, content classification, and syntax analysis.",
+                                        style={'line-height':'28px','font-weight':'400','color':'#5f6368'}),
+                                        ],),
+
+                                        dbc.Col([
+                                        html.H3(children="Insights from customers"),
+                                        
+                                        html.P(children="Use entity analysis to find and label fields within a document — including emails, chat, and social media — and then sentiment analysis to understand customer opinions to find actionable product and UX insights.",
+                                        style={'line-height':'28px','font-weight':'400','color':'#5f6368'}),
+                                        ],),
+                                        ],
+                                    className="horizontal")
+                                ]
                         ),
                         html.Section(
-                            id="authentication",
+                            id="nlp_demo",
                             children=[
-                                html.H2(children="Authentication"),
-                                html.P(children="..."),
+                                html.H2(children="Natural Language API demo",
+                                        style={"text-align":"center","font-size":"40px"}),
+                                dbc.InputGroup(
+                                    [dbc.InputGroupAddon("Try the API", addon_type="prepend", style={"text-align":"center","font-weight":"50px","padding-top":"50px","padding-bottom":"30px"}), 
+                                    dbc.Input(id="input",placeholder="Enter text to be analyzed...",className="mb-3",type="text")],
+                                    size="lg",),
+                                html.Br(),
+                                html.Div( dbc.Button("Analyse", color="primary",disabled=True, className="mr-1",href="#nlp_demo",),
+                                 style={"padding-top":"20px","padding-bottom":"20px","text-align":"center"}),  
                             ]
                         ),
                         html.Section(
@@ -116,11 +153,11 @@ scrolling_bar= html.Nav(
                                 ),
                                 html.Listing(
                                     html.A(href="#request-response",
-                                        children="Request")
+                                        children="Benefits")
                                 ),
                                 html.Listing(
-                                    html.A(href="#authentication",
-                                        children="Authentication")
+                                    html.A(href="#nlp_demo",
+                                        children="Natural Language API demo")
                                 ),
                                 html.Listing(
                                     children=[
@@ -164,7 +201,6 @@ app.layout = html.Div(
     children=[
         html.Div(
             children=[
-                html.P(children="🥑", className="header-emoji"),
                 html.H1(
                     children="Avocado Analytics", className="header-title"
                 ),
@@ -262,6 +298,8 @@ app.layout = html.Div(
         Input("date-range", "end_date"),
     ],
 )
+# @app.callback(Output("output", "children"), [Input("input", "value")])
+
 def update_charts(region, avocado_type, start_date, end_date):
     mask = (
         (data.region == region)
