@@ -8,6 +8,24 @@ import numpy as np
 from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
 import time
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from time import sleep
+import csv
+import urllib
+from selenium.webdriver.common.action_chains import ActionChains
+import requests
+import json
+import re
+import urllib.request
+import os
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException,StaleElementReferenceException,InvalidArgumentException,ElementClickInterceptedException,WebDriverException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+import pickle5 as pickle
+
 # source venv/bin/activate
 data = pd.read_csv("avocado.csv")
 data["Date"] = pd.to_datetime(data["Date"], format="%Y-%m-%d")
@@ -30,7 +48,7 @@ external_scripts = [
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets,external_scripts=external_scripts,)
 server = app.server
 
-app.title = "Avocado Analytics: Understand Your Avocados!"
+app.title = "LTRACK2.0 Analytics: Understand Your Sells!"
 context_module=html.Div(children=[
                         #Header
                         html.H1(children="Natural Language AI",
@@ -38,7 +56,7 @@ context_module=html.Div(children=[
                         
                         html.H4(children="Derive insights from unstructured text using LTRACK2.0",
                                 style={'font-weight':'200','font-size':'65'}),
-                        html.Div( dbc.Button("Try it for free", color="primary",disabled=True, className="custom_button",href="#nlp_demo",),
+                        html.Div( dbc.Button("Try it for free",disabled=True, className="custom_button",href="#nlp_demo",),
                                  style={"padding-top":"20px","padding-bottom":"20px"},
                                  className="wrap"),
                         ##Introduction
@@ -109,10 +127,10 @@ context_module=html.Div(children=[
                                     size="lg",
                                     style={"padding-top":"50px"}),
                                 html.Br(),
-                                html.Div(dbc.Button("Analyse", id="summit_button",color="primary",outline=True, className="simple_button",n_clicks=0),
+                                html.Div(dbc.Button("Analyse", id="summit_button",outline=True, className="simple_button",n_clicks=0),
                                  style={"padding-top":"20px","padding-bottom":"20px","text-align":"center"}),  
-                                html.Div(id='container-button-basic',
-                                        children='Enter a value and press submit'),
+                                ##place to generate output
+                                html.Div(id='container-button-basic'),
                                 html.Div(
                                             dbc.Spinner(color="primary", type="grow",children=[html.Div(id="loading-output")]),
                                 ),
@@ -195,21 +213,21 @@ scrolling_bar= html.Nav(
                                     html.A(href="#nlp_demo",
                                         children="Natural Language API demo")
                                 ),
-                                html.Listing(
-                                    children=[
-                                    html.A(href="#endpoints",
-                                        children="Endpoints"),
-                                    html.Ul(
-                                        children=[
-                                        html.Listing(
-                                                html.A(href="#endpoints--city-detail",
-                                                children="City Detail",
-                                                className="")
-                                                ),
-                                        ]
-                                    ),
-                                    ]
-                                ),
+                                # html.Listing(
+                                #     children=[
+                                #     html.A(href="#endpoints",
+                                #         children="Endpoints"),
+                                #     html.Ul(
+                                #         children=[
+                                #         html.Listing(
+                                #                 html.A(href="#endpoints--city-detail",
+                                #                 children="City Detail",
+                                #                 className="")
+                                #                 ),
+                                #         ]
+                                #     ),
+                                #     ]
+                                # ),
                             html.Listing(
                                     html.A(href="#links",
                                     children="Links",
@@ -238,15 +256,18 @@ app.layout = html.Div(
     children=[
         html.Div([
             dbc.Row([
-                dbc.Col(html.H2(children="LTrack2.0",style={"padding-left":"95px"})),
+                dbc.Col(html.H2(children="LTrack2.0",style={"padding-left":"95px"}),md=8),
                 dbc.Col(dbc.Nav(
                     [
-                        dbc.NavLink("   Contact    ", disabled=True, href="#",style={"font-family":"text/css"}),
-                        dbc.NavLink("   About  ",disabled=True, href="#"),
-                        dbc.NavLink("   Terms  ",disabled=True,href="#"),
-                    ]),style={"justify-content": "space-evenly","padding-left":"100px"})
-                ],),],
-            className="header",),
+                        dbc.NavLink("Contact", disabled=True, href="#",style={"font-family":"sans-serif","font-size":"18px",}),
+                        dbc.NavLink("About",disabled=True, href="#",style={"font-family":"sans-serif","font-size":"18px"}),
+                        dbc.NavLink("Terms",disabled=True,href="#",style={"font-family":"sans-serif","font-size":"18px"}),
+                    ]),style={"justify-content": "space-evenly"},
+                    )
+                ],
+                justify="between",),],
+            className="header",
+           ),
 
         # html.Div(
         #     children=[
@@ -381,7 +402,6 @@ app.layout = html.Div(
 #         },
 #     }
 #     return price_chart_figure, volume_chart_figure
-
 @app.callback(
     Output("loading-output", "children"), [Input("summit_button", "n_clicks")])
 def load_output(n):
@@ -390,19 +410,18 @@ def load_output(n):
         return f"Output loaded {n} times"
     return "Output not reloaded yet"
     
-@app.callback(
-    dash.dependencies.Output('container-button-basic', 'children'),
-    [dash.dependencies.Input('input', 'value'),
-     dash.dependencies.Input('summit_button', 'n_clicks')])
+# @app.callback(
+#     dash.dependencies.Output('container-button-basic', 'children'),
+#     [dash.dependencies.Input('input', 'value'),
+#      dash.dependencies.Input('summit_button', 'n_clicks')])
+# def update_output(value,click_Value):
 
-def update_output(value,click_Value):
-
-    if click_Value:
-        # print(previous_click,click_Value)
-        return 'The input value was "{}" and the button has been clicked {} times'.format(
-            value,
-            click_Value
-        )
+#     if click_Value:
+#         # print(previous_click,click_Value)
+#         return 'The input value was "{}" and the button has been clicked {} times'.format(
+#             value,
+#             click_Value
+#         )
 @app.callback(
     Output("collapse", "is_open"),
     [Input("collapse-button", "n_clicks")],
@@ -412,5 +431,31 @@ def toggle_collapse(n, is_open):
     if n:
         return not is_open
     return is_open
+
+previous_click=0
+
+@app.callback(
+    Output('container-button-basic', 'children'),
+    [Input("input",'value'),
+    Input('summit_button', 'n_clicks')]   
+)
+
+def take_string(text_string,click):
+    global previous_click
+    if text_string:
+        if previous_click!=click:
+            previous_click=click
+            if "shopee" not in text_string or "official_store" not in text_string:
+                return   dbc.Alert(
+                        [
+                            "Please only input the link from the store in Shopee Mall with the following pattern link: https://shopee.vn/{store_name}_official_store.",
+                            html.A(" Find here", href="https://shopee.vn/mall/brands/2365", target="_blank",rel="noopener noreferrer",className="alert-link"),
+                        ],
+                        color="primary",
+                    ),
+            else:
+                return 'The input_String {}'.format(text_string)
+##Get_link_download
+  
 if __name__ == "__main__":
     app.run_server(debug=True)
