@@ -8,24 +8,17 @@ import numpy as np
 from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
 import time
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from time import sleep
-import csv
-import urllib
-from selenium.webdriver.common.action_chains import ActionChains
-import requests
-import json
-import re
-import urllib.request
-import os
-from selenium import webdriver
-from selenium.common.exceptions import TimeoutException,StaleElementReferenceException,InvalidArgumentException,ElementClickInterceptedException,WebDriverException
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-import pickle5 as pickle
-
+from get_shopee_comments import get_shopee_comments_in_pickle_file
+from rq.exceptions import NoSuchJobError
+from rq.job import Job
+from dash_rq_demo.core import app, conn, queue
+from dash_rq_demo.tasks import slow_loop
+from dash.dependencies import Input, Output, State
+import uuid
+from collections import namedtuple
+Result = namedtuple(
+    "Result", ["result", "progress", "collapse_is_open", "finished_data"]
+)
 # source venv/bin/activate
 data = pd.read_csv("avocado.csv")
 data["Date"] = pd.to_datetime(data["Date"], format="%Y-%m-%d")
@@ -50,6 +43,7 @@ server = app.server
 
 app.title = "LTRACK2.0 Analytics: Understand Your Sells!"
 context_module=html.Div(children=[
+                         
                         #Header
                         html.H1(children="Natural Language AI",
                                 style={'font-size':'100',}),
@@ -123,17 +117,23 @@ context_module=html.Div(children=[
                                         style={"text-align":"center","font-size":"40px"}),
                                 dbc.InputGroup(
                                     [dbc.InputGroupAddon("Try the API", addon_type="prepend", style={"text-align":"center","font-weight":"50px"}), 
-                                    dbc.Input(id="input",placeholder="Enter text to be analyzed...",type="text")],
+                                    dbc.Textarea(id="text", className="mb-3",placeholder="Enter text to be analyzed...",type="text")],
+                                    # dbc.Input(id="input",)],
                                     size="lg",
                                     style={"padding-top":"50px"}),
                                 html.Br(),
                                 html.Div(dbc.Button("Analyse", id="summit_button",outline=True, className="simple_button",n_clicks=0),
                                  style={"padding-top":"20px","padding-bottom":"20px","text-align":"center"}),  
                                 ##place to generate output
-                                html.Div(id='container-button-basic'),
-                                html.Div(
-                                            dbc.Spinner(color="primary", type="grow",children=[html.Div(id="loading-output")]),
-                                ),
+                                dcc.Store(id="submitted-store"),
+                                dcc.Store(id="finished-store"),
+                                # html.Div(
+                                #             dbc.Progress(children=[html.Div(id='container-button-basic')], value=0, max=100, striped=True, color="success", style={"height": "20px"}),\
+                                #             width={'size': 5, 'offset': 1}),
+                                dcc.Interval(id="interval", interval=500),
+                                dbc.Collapse(dbc.Progress(id="progress", className="mb-3"), id="collapse"),
+                                html.P(id="output"),
+
                                 html.Div([
                                     dbc.Button(
                                         "*Support Language",
@@ -341,9 +341,116 @@ app.layout = html.Div(
         html.Div(
             horizontal_display,
         )
-    ]
+    ],
 )
+previous_click=0
+@app.callback(
+    Output("submitted-store", "data"),
+    [Input("button", "n_clicks")],
+    [State("text", "value")],
+)
+def submit(n_clicks, text):
+    """
+    Submit a job to the queue, log the id in submitted-store
+    """
+    global previous_click
+    if text:
+        if previous_click!=n_clicks:
+            previous_click=n_clicks
+            # if "shopee" not in text or "official_store" not in text:
+            #     return   dbc.Alert(
+            #             [
+            #                 "Please only input the link from the store in Shopee Mall with the following pattern link: https://shopee.vn/{store_name}_official_store.",
+            #                 html.A(" Find here", href="https://shopee.vn/mall/brands/2365", target="_blank",rel="noopener noreferrer",className="alert-link"),
+            #             ],
+            #             color="primary",
+            #         ),
+            # else:
+            id_ = str(uuid.uuid4())
 
+            # queue the task
+            queue.enqueue(slow_loop,text, job_id=id_)
+
+            # log process id in dcc.Store
+            return {"id": id_}
+
+    return {}
+@app.callback(
+    [
+        Output("output", "children"),
+        Output("progress", "value"),
+        Output("collapse", "is_open"),
+        Output("finished-store", "data"),
+    ],
+    [Input("interval", "n_intervals")],
+    [State("submitted-store", "data")],
+)
+def retrieve_output(n, submitted):
+    """
+    Periodically check the most recently submitted job to see if it has
+    completed.
+    """
+    if n and submitted:
+        try:
+            job = Job.fetch(submitted["id"], connection=conn)
+            if job.get_status() == "finished":
+                # job is finished, return result, and store id
+                return Result(
+                    result=job.result,
+                    progress=100,
+                    collapse_is_open=False,
+                    finished_data={"id": submitted["id"]},
+                )
+
+            # job is still running, get progress and update progress bar
+            progress = job.meta.get("progress", 0)
+            return Result(
+                result=f"Processing - {progress:.1f}% complete",
+                progress=progress,
+                collapse_is_open=True,
+                finished_data=dash.no_update,
+            )
+        except NoSuchJobError:
+            # something went wrong, display a simple error message
+            return Result(
+                result="Error: result not found...",
+                progress=None,
+                collapse_is_open=False,
+                finished_data=dash.no_update,
+            )
+    # nothing submitted yet, return nothing.
+    return Result(
+        result=None, progress=None, collapse_is_open=False, finished_data={}
+    )
+
+
+@app.callback(
+    Output("interval", "disabled"),
+    [Input("submitted-store", "data"), Input("finished-store", "data")],
+)
+def disable_interval(submitted, finished):
+    if submitted:
+        if finished and submitted["id"] == finished["id"]:
+            # most recently submitted job has finished, no need for interval
+            return True
+        # most recent job has not yet finished, keep interval going
+        return False
+    # no jobs submitted yet, disable interval
+    return True 
+def submit(n_clicks, text):
+    """
+    Submit a job to the queue, log the id in submitted-store
+    """
+    if n_clicks:
+        id_ = str(uuid.uuid4())
+
+        # queue the task
+        queue.enqueue(slow_loop, text, job_id=id_)
+
+        # log process id in dcc.Store
+        return {"id": id_}
+
+    return {}
 # ##outside_Variable
 # previous_click=0
 
@@ -402,13 +509,13 @@ app.layout = html.Div(
 #         },
 #     }
 #     return price_chart_figure, volume_chart_figure
-@app.callback(
-    Output("loading-output", "children"), [Input("summit_button", "n_clicks")])
-def load_output(n):
-    if n:
-        time.sleep(1)
-        return f"Output loaded {n} times"
-    return "Output not reloaded yet"
+# @app.callback(
+#     Output("loading-output", "children"), [Input("summit_button", "n_clicks")])
+# def load_output(n):
+#     if n:
+#         time.sleep(1)
+#         return f"Output loaded {n} times"
+#     return "Output not reloaded yet"
     
 # @app.callback(
 #     dash.dependencies.Output('container-button-basic', 'children'),
@@ -432,29 +539,30 @@ def toggle_collapse(n, is_open):
         return not is_open
     return is_open
 
-previous_click=0
+# previous_click=0
 
-@app.callback(
-    Output('container-button-basic', 'children'),
-    [Input("input",'value'),
-    Input('summit_button', 'n_clicks')]   
-)
+# @app.callback(
+#     Output('container-button-basic', 'children'),
+#     [Input("input",'value'),
+#     Input('summit_button', 'n_clicks')]   
+# )
 
-def take_string(text_string,click):
-    global previous_click
-    if text_string:
-        if previous_click!=click:
-            previous_click=click
-            if "shopee" not in text_string or "official_store" not in text_string:
-                return   dbc.Alert(
-                        [
-                            "Please only input the link from the store in Shopee Mall with the following pattern link: https://shopee.vn/{store_name}_official_store.",
-                            html.A(" Find here", href="https://shopee.vn/mall/brands/2365", target="_blank",rel="noopener noreferrer",className="alert-link"),
-                        ],
-                        color="primary",
-                    ),
-            else:
-                return 'The input_String {}'.format(text_string)
+# def take_string(text_string,click):
+#     global previous_click
+#     if text_string:
+#         if previous_click!=click:
+#             previous_click=click
+#             if "shopee" not in text_string or "official_store" not in text_string:
+#                 return   dbc.Alert(
+#                         [
+#                             "Please only input the link from the store in Shopee Mall with the following pattern link: https://shopee.vn/{store_name}_official_store.",
+#                             html.A(" Find here", href="https://shopee.vn/mall/brands/2365", target="_blank",rel="noopener noreferrer",className="alert-link"),
+#                         ],
+#                         color="primary",
+#                     ),
+#             else:
+#                 get_shopee_comments_in_pickle_file(text_string)
+#                 return 'The input_String {}'.format(text_string)
 ##Get_link_download
   
 if __name__ == "__main__":
